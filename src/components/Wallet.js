@@ -12,8 +12,7 @@ export const Wallet = ({ wallet, account }) => {
 	}
 
 	return <>
-		<p>Sign in with your NEAR Wallet</p>
-		<button onClick={() => wallet.signIn()}>Sign In</button>
+		<button onClick={() => wallet.signIn()}>Sign In with NEAR Wallet</button>
 	</>;
 };
 

@@ -1,5 +1,5 @@
 [package]
-name = "basic-token"
+name = "nft"
 version = "0.1.0"
 authors = ["Near Inc <hello@near.org>"]
 edition = "2018"
@@ -10,8 +10,9 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.61"
-near-sdk = "2.0.0"
+near-sdk = "2.0.1"
 borsh = "0.7.1"
+hex = "0.4.2"
 wee_alloc = "0.4.5"
 
 [profile.release]

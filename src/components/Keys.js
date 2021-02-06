@@ -24,48 +24,36 @@ export const Keys = ({ near, update, localKeys }) => {
 	}, []);
 
 	const loadKeys = async () => {
-		const { seedPhrase, accountId, accessPublic, accessSecret } = get(LOCAL_KEYS);
-		if (!seedPhrase) return;
-		update('localKeys', { seedPhrase, accountId, accessPublic, accessSecret });
+		const { seedPhrase, accessAccountId, accessPublic, accessSecret, signedIn } = get(LOCAL_KEYS);
+		if (!accessAccountId) return;
+		update('localKeys', { seedPhrase, accessAccountId, accessPublic, accessSecret, signedIn });
 	};
 
-	const getNewAccount = async () => {
-		update('loading', true);
-		const { seedPhrase, publicKey } = generateSeedPhrase();
-		const accountId = Buffer.from(PublicKey.from(publicKey).data).toString('hex');
-		const keyPair = await getNewAccessKey();
-		if (keyPair) {
-			const keys = {
-				seedPhrase,
-				accountId,
-				accessPublic: keyPair.publicKey.toString(),
-				accessSecret: keyPair.secretKey
-			};
-			update('localKeys', keys);
-			set(LOCAL_KEYS, keys);
-		} else {
-			alert('Something happened. Try "Get New App Key" again!');
-		}
-		update('loading', false);
-	};
+	const getNewAccessKey = async () => {
 
-	const getNewAccessKey = async (selfUpdate = false) => {
-		const keyPair = KeyPair.fromRandom('ed25519');
+        if (localKeys) {
+            return signIn()
+        }
+
+        const { seedPhrase, publicKey, secretKey } = generateSeedPhrase();
+        const keyPair = KeyPair.fromString(secretKey);
 		// WARNING NO RESTRICTION ON THIS ENDPOINT
 		const result = await postJson({
 			url: 'http://localhost:3000/add-key',
-			data: { publicKey: keyPair.publicKey.toString() }
-        });
+			data: { publicKey: publicKey.toString() }
+		});
 		if (result && result.success) {
 			const isValid = await checkAccessKey(keyPair);
 			if (isValid) {
-				if (!localKeys || !selfUpdate) {
-					return keyPair;
-				}
-				localKeys.accessPublic = keyPair.publicKey.toString(),
-				localKeys.accessSecret = keyPair.secretKey;
-				update('localKeys', localKeys);
-				set(LOCAL_KEYS, localKeys);
+				const keys = {
+                    seedPhrase,
+                    accessAccountId: Buffer.from(PublicKey.from(publicKey).data).toString('hex'),
+                    accessPublic: publicKey.toString(),
+                    accessSecret: secretKey,
+                    signedIn: true,
+                };
+                update('localKeys', keys);
+                set(LOCAL_KEYS, keys);
 			}
 		}
 		return null;
@@ -79,7 +67,19 @@ export const Keys = ({ near, update, localKeys }) => {
 			account
 		});
 		return result && result.success;
-	};
+    };
+    
+    const signIn = () => {
+        localKeys.signedIn = true
+        update('localKeys', localKeys);
+        set(LOCAL_KEYS, localKeys);
+    }
+
+    const signOut = () => {
+        localKeys.signedIn = false
+        update('localKeys', localKeys);
+        set(LOCAL_KEYS, localKeys);
+    }
 
 	const deleteAccessKeys = async () => {
 		update('loading', true);
@@ -93,21 +93,11 @@ export const Keys = ({ near, update, localKeys }) => {
 	};
 
 	return <>
-		<h3>Implicit Account</h3>
-		{ localKeys && localKeys.seedPhrase ?
-			<>
-				<p><b>Seed Phrase:</b> {localKeys.seedPhrase}</p>
-				<p><b>Implicit Account Id:</b> {localKeys.accountId}</p>
-				<p><b>App Key:</b> {localKeys.accessPublic}</p>
-				<button onClick={() => getNewAccessKey(true)}>Get New App Key</button>
-				<br />
-				<button onClick={() => deleteAccessKeys()}>Remove Account</button>(warning removes all access keys from contract, for you and everyone else)
-			</> :
-			<>
-				<p>Creates a seed phrase + access key to interact with the app. Normally you would set up your seed phrase with a wallet and the app would add an access key.</p>
-				<button onClick={() => getNewAccount()}>Get New Account</button>
-			</>
+		{ localKeys && localKeys.signedIn ?
+			<button onClick={() => signOut()}>Sign Out</button> :
+			<button onClick={() => getNewAccessKey()}>Sign In As Guest</button>
 		}
+        {/* <button onClick={() => deleteAccessKeys()}>DELETE ALL ACCESS KEY ACCOUNTS</button> */}
 	</>;
 };
 

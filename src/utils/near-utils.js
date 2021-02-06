@@ -58,7 +58,8 @@ export const postJson = async ({ url, data = {} }) => {
 
 export const createAccessKeyAccount = (near, key) => {
 	key.toString = () => key.secretKey;
-	near.connection.signer.keyStore.setKey(networkId, contractName, key);
+    near.connection.signer.keyStore.setKey(networkId, contractName, key);
+    console.log(near.connection.signer.keyStore.getKey(networkId, contractName))
 	const account = new Account(near.connection, contractName);
 	return account;
 };

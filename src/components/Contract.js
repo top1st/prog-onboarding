@@ -12,48 +12,38 @@ const {
 } = nearAPI;
 
 export const Contract = ({ near, update, localKeys = {}, account }) => {
-	if (!localKeys || !localKeys.accessPublic) return null;
+    if (!account && !localKeys.signedIn) return null
 
-	const [message, setMessage] = useState('');
-	const [amount, setAmount] = useState('');
-	const [messageForSale, setMessageForSale] = useState();
-	const [purchaseKey, setPurchaseKey] = useState('');
+	const [metadata, setMetadata] = useState('');
     
 	useEffect(() => {
-		if (!localKeys.accessPublic) return;
-		loadMessage();
-	}, [localKeys.accessPublic]);
+		loadSales();
+	}, []);
 
 
-	const loadMessage = async () => {
-		const contract = getContract(createAccessKeyAccount(near, KeyPair.fromString(localKeys.accessSecret)));
-		try {
-			const result = await contract.get_message({ public_key: localKeys.accessPublic });
-			result.amount = formatNearAmount(result.amount, 2);
-			console.log(result);
-			setMessageForSale(result);
-			setPurchaseKey(localKeys.accessPublic);
-		} catch (e) {
-			if (!/No message/.test(e.toString())) {
-				throw e;
-			}
-		}
+	const loadSales = async () => {
+		
 	};
 
-	const handleCreateMessage = async () => {
-		if (!message.length || !amount.length) {
-			alert('Please enter a message and amount!');
+	const handleMint = async () => {
+		if (!metadata.length) {
+			alert('Please enter some metadata');
 			return;
 		}
-		update('loading', true);
-		const appAccount = createAccessKeyAccount(near, KeyPair.fromString(localKeys.accessSecret));
+        update('loading', true);
+        let appAccount = account
+        if (!appAccount) {
+            appAccount = createAccessKeyAccount(near, KeyPair.fromString(localKeys.accessSecret));
+        }
+        
 		const contract = getContract(appAccount);
-		await contract.create({
-			message,
-			amount: parseNearAmount(amount),
-			owner: localKeys.accountId
-		}, GAS);
-		await loadMessage();
+        const tokenId = await contract[!account ? 'guest_mint' : 'mint_token']({
+			metadata,
+			owner_id: appAccount.accountId
+        }, GAS);
+
+        console.log(tokenId)
+        
 		update('loading', false);
 	};
 
@@ -86,35 +76,9 @@ export const Contract = ({ near, update, localKeys = {}, account }) => {
 	};
 
 	return <>
-		{
-			messageForSale ?
-				<>
-					<h3>Message for Sale</h3>
-					<p><b>App Key:</b> { localKeys.accessPublic }</p>
-					<p><b>Message:</b> { messageForSale.message }</p>
-					<p><b>Amount:</b> { messageForSale.amount }</p>
-				</> :
-				<>
-					<h3>Sell a Message</h3>
-					<p>Seller Account Id: { localKeys.accountId }</p>
-					<p>Using App Key: { localKeys.accessPublic }</p>
-					<input placeholder="Message" value={message} onChange={(e) => setMessage(e.target.value)} />
-					<br />
-					<input placeholder="Amount (N)" value={amount} onChange={(e) => setAmount(e.target.value)} />
-					<br />
-					<button onClick={() => handleCreateMessage()}>Create Message</button>
-				</>
-		}
-		{
-			account &&
-            <>
-            	<h3>Buy a Message</h3>
-            	<input placeholder="App Key" value={purchaseKey} onChange={(e) => setPurchaseKey(e.target.value)} />
-            	<br />
-            	<button onClick={() => handleBuyMessage()}>Buy Message</button>
-            </>
-		}
-		
+        <h3>Mint Something</h3>
+        <input placeholder="Metadata" value={metadata} onChange={(e) => setMetadata(e.target.value)} />
+        <button onClick={() => handleMint()}>Mint</button>
 	</>;
 };
 

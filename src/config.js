@@ -1,4 +1,4 @@
-const contractName = 'dev-1612194775824-3637149';
+const contractName = 'dev-1612590188280-2853755';
 
 module.exports = function getConfig(isServer = false) {
 	let config = {
@@ -12,11 +12,11 @@ module.exports = function getConfig(isServer = false) {
 	if (process.env.REACT_APP_ENV !== undefined) {
 		config = {
 			...config,
-			GAS: '200000000000000',
+			GAS: '300000000000000',
 			DEFAULT_NEW_ACCOUNT_AMOUNT: '5',
 			contractMethods: {
-				changeMethods: ['new', 'create', 'purchase'],
-				viewMethods: ['get_message'],
+				changeMethods: ['new', 'mint_token', 'guest_mint', 'transfer', 'set_price', 'purchase', 'withdraw'],
+				viewMethods: ['get_token_owner', 'get_token_metadata', 'check_access'],
 			},
 		};
 	}

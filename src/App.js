@@ -22,13 +22,33 @@ const App = () => {
 		return <div className="root">
 			<h3>Workin on it!</h3>
 		</div>;
-	}
+    }
+
     
 	return (
 		<div className="root">
-			<Keys {...{ near, update, localKeys }} />
-			<Contract {...{ near, update, localKeys, wallet, account }} />
-			<Wallet {...{ wallet, account }} />
+
+            { (!wallet || !wallet.signedIn) && (!localKeys || !localKeys.signedIn) &&
+                <>
+                    <Wallet {...{ wallet, account }} />
+                    <br />
+                    Or
+                    <br />
+                    <br />
+                    <Keys {...{ near, update, localKeys }} />
+                </>
+            }
+            {
+                ((wallet && wallet.signedIn) || (localKeys && localKeys.signedIn)) &&
+                <Contract {...{ near, update, localKeys, wallet, account }} />
+            }
+            {
+                wallet && wallet.signedIn && <Wallet {...{ wallet, account }} />
+            }
+            <br />
+            {
+                localKeys && localKeys.signedIn && <Keys {...{ near, update, localKeys }} />
+            }
 		</div>
 	);
 };
