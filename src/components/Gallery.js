@@ -42,7 +42,7 @@ export const Gallery = ({ near, signedIn, contractAccount, account, localKeys, l
 		}
 		newItems.reverse();
 		setItems(newItems);
-		console.log(newItems);
+		console.log('loaded items', newItems);
 		setFetching(false);
 	};
 
@@ -51,12 +51,10 @@ export const Gallery = ({ near, signedIn, contractAccount, account, localKeys, l
 		console.log(token_id);
 		const contract = getContract(account);
 		const item = items.find(({ token_id: id }) => token_id === id);
-		console.log(item);
-		const purchase = await contract.purchase({
+		await contract.purchase({
 			new_owner_id: account.accountId,
 			token_id: token_id
 		}, GAS, item.price);
-
 		await loadItems();
 		update('loading', false);
 	};
@@ -89,7 +87,7 @@ export const Gallery = ({ near, signedIn, contractAccount, account, localKeys, l
 		mine = items.filter(({ owner_id }) => owner_id === accountId);
 	} else {
 		market = items;
-	}
+    }
 
 	return <>
 		{signedIn && <div className="filters">
@@ -97,7 +95,7 @@ export const Gallery = ({ near, signedIn, contractAccount, account, localKeys, l
 			<button onClick={() => setFilter(2)} style={{ background: filter === 2 ? '#FFB259' : ''}}>My Tokens</button>
 		</div>}
 		{
-			(accountId && filter === 1 ? market : mine).map(({ metadata, owner_id, price, token_id }) => <div key={token_id} className="item">
+			(filter === 1 ? market : mine).map(({ metadata, owner_id, price, token_id }) => <div key={token_id} className="item">
 				<img src={metadata} />
 				{(filter === 1 || price !== '0') &&<div className="line"></div>}
 				{filter === 1 && <p>Owned by {formatAccountId(owner_id)}</p>}
