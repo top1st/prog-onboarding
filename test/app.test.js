@@ -13,9 +13,9 @@ const { GAS } = getConfig();
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 50000;
 
 describe('deploy contract ' + contractName, () => {
-    let alice, bob, bobPublicKey, bobAccountId, bobTokenId;
+	let alice, bob, bobPublicKey, bobAccountId, bobTokenId;
     
-	const metadata = "hello world!";
+	const metadata = "https://media.giphy.com/media/l3vR9qDCwNyUtirXa/giphy.gif";
 
 	beforeAll(async () => {
 		alice = await getAccount();
@@ -29,27 +29,23 @@ describe('deploy contract ' + contractName, () => {
 
 	test('check create owner', async () => {
 		const token_id = await contract.mint_token({
-            owner_id: alice.accountId,
-            metadata
-		}, GAS);
+			owner_id: alice.accountId,
+			metadata
+		}, GAS, parseNearAmount('1'));
         
-		const owner_id = await contract.get_token_owner({
+		const token_data = await contract.get_token_data({
 			token_id
 		});
         
-        expect(owner_id).toEqual(alice.accountId);
+		expect(token_data.owner_id).toEqual(alice.accountId);
         
-		const meta = await contract.get_token_metadata({
-			token_id
-        });
-        
-        expect(meta).toEqual(metadata);
+		expect(token_data.metadata).toEqual(metadata);
 	});
 
 	test('check create as guest', async () => {
 		const keyPair = KeyPair.fromRandom('ed25519');
 		const public_key = bobPublicKey = keyPair.publicKey.toString();
-        bobAccountId = Buffer.from(keyPair.publicKey.data).toString('hex');
+		bobAccountId = Buffer.from(keyPair.publicKey.data).toString('hex');
 
 		// typically done on server (sybil/captcha)
 		await contractAccount.addKey(public_key, contractName, contractMethods.changeMethods, parseNearAmount('1'));
@@ -58,96 +54,97 @@ describe('deploy contract ' + contractName, () => {
 		const contractBob = await getContract(bob);
         
 		bobTokenId = await contractBob.guest_mint({
-            owner_id: bobAccountId,
-            metadata
+			owner_id: bobAccountId,
+			metadata
 		}, GAS);
         
-		const owner_id = await contractBob.get_token_owner({
+		const token_data = await contractBob.get_token_data({
 			token_id: bobTokenId
-        });
-
-		expect(owner_id).toEqual(bobAccountId);
-    });
+		});
+        
+		expect(token_data.owner_id).toEqual(bobAccountId);
+	});
     
-    test('check transfer from implicit account', async () => {
-        const contractBob = await getContract(bob);
+	test('check transfer from implicit account', async () => {
+		const contractBob = await getContract(bob);
 
 		await contractBob.transfer({
-            new_owner_id: alice.accountId,
-            token_id: bobTokenId
-        }, GAS);
-        
-		const owner_id = await contractBob.get_token_owner({
+			new_owner_id: alice.accountId,
 			token_id: bobTokenId
-        });
+		}, GAS);
         
-		expect(owner_id).toEqual(alice.accountId);
-    });
+		const token_data = await contractBob.get_token_data({
+			token_id: bobTokenId
+		});
+        
+		expect(token_data.owner_id).toEqual(alice.accountId);
+	});
 
-    test('check transfer from regular account', async () => {
-        const contractAlice = await getContract(alice);
+	test('check transfer from regular account', async () => {
+		const contractAlice = await getContract(alice);
 
 		await contractAlice.transfer({
-            new_owner_id: bobAccountId,
-            token_id: bobTokenId
-        }, GAS);
-        
-		const owner_id = await contractAlice.get_token_owner({
+			new_owner_id: bobAccountId,
 			token_id: bobTokenId
-        });
+		}, GAS);
         
-		expect(owner_id).toEqual(bobAccountId);
-    });
+		const token_data = await contractAlice.get_token_data({
+			token_id: bobTokenId
+		});
+        
+		expect(token_data.owner_id).toEqual(bobAccountId);
+	});
     
-    test('check set price from implicit account, purchase from regular account', async () => {
-        const contractBob = await getContract(bob);
+	test('check set price from implicit account, purchase from regular account', async () => {
+		const contractBob = await getContract(bob);
 
 		await contractBob.set_price({
-            token_id: bobTokenId,
-            amount: parseNearAmount('1')
-        }, GAS);
+			token_id: bobTokenId,
+			amount: parseNearAmount('1')
+		}, GAS);
 
-        const contractAlice = await getContract(alice);
+		const contractAlice = await getContract(alice);
 
 		await contractAlice.purchase({
-            new_owner_id: alice.accountId,
-            token_id: bobTokenId
-        }, GAS, parseNearAmount('1'));
-
-        const owner_id = await contractAlice.get_token_owner({
+			new_owner_id: alice.accountId,
 			token_id: bobTokenId
-        });
-        
-		expect(owner_id).toEqual(alice.accountId);
-    });
+		}, GAS, parseNearAmount('1'));
 
-    test('check withdraw from implicit account', async () => {
-        const contractBob = await getContract(bob);
+		const token_data = await contractAlice.get_token_data({
+			token_id: bobTokenId
+		});
+        
+		expect(token_data.owner_id).toEqual(alice.accountId);
+	});
+
+	test('check withdraw from implicit account', async () => {
+		const contractBob = await getContract(bob);
 
 		await contractBob.withdraw({
-            account_id: bobAccountId,
-        }, GAS);
+			account_id: bobAccountId,
+			beneficiary: bobAccountId,
+		}, GAS);
 
-        const account = new Account(connection, bobAccountId);
-        try {
-            const state = await account.state();
-            expect(state.amount).toEqual(parseNearAmount('1'));
-        } catch (e) {
-            console.warn(e)
+		const account = new Account(connection, bobAccountId);
+		try {
+			const state = await account.state();
+			expect(state.amount).toEqual(parseNearAmount('1'));
+		} catch (e) {
+			console.warn(e);
 			expect(false);
-        }
-    });
+		}
+	});
     
 	test('check mint limit', async () => {
 		const contractBob = await getContract(bob);
         
 		bobTokenId = await contractBob.guest_mint({
-            owner_id: bobAccountId,
-            metadata
+			owner_id: bobAccountId,
+			metadata
 		}, GAS);
 		bobTokenId = await contractBob.guest_mint({
-            owner_id: bobAccountId,
-            metadata
+			owner_id: bobAccountId,
+			metadata
 		}, GAS);
 
 		try {

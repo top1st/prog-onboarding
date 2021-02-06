@@ -3,9 +3,13 @@ const cors = require('cors');
 const nearAPI = require('near-api-js');
 const getConfig = require('../src/config');
 const { contractAccount, withNear, hasAccessKey } = require('./middleware/near');
-const { contractName } = getConfig();
+const { contractName, accessKeyMethods } = getConfig();
 const {
-	
+	utils: {
+		format: {
+			parseNearAmount
+		}
+	}
 } = nearAPI;
 
 const app = express();
@@ -27,9 +31,10 @@ app.post('/has-access-key', hasAccessKey, (req, res) => {
 app.post('/add-key', async (req, res) => {
 	const { publicKey } = req.body;
 	try {
-		const result = await contractAccount.addAccessKey(publicKey);
+		const result = await contractAccount.addKey(publicKey, contractName, accessKeyMethods.changeMethods, parseNearAmount('1'));
 		res.json({ success: true, result });
 	} catch(e) {
+		console.log(e);
 		return res.status(403).send({ error: `key is already added`});
 	}
 });
