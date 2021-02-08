@@ -1,10 +1,37 @@
 # Live App Review 6 - Progressive Onboarding
 
-WIP
+VIDEO WIP
 
-# NEAR App Boilerplate
+# Notes on this Example
 
-Most of this repo is how to use React 17 with useContext and useReducer.
+This example is WIP.
+
+Working:
+```js
+yarn // see installation notes for Rust
+yarn test:unit // 1 test will fail due to bug in mocked blockchain
+yarn test:deploy // runs /test/app.test.js (all passing)
+yarn start
+```
+
+Despite server tests being incomplete, you still need to run the server (see notes below) `yarn && yarn start`.
+
+After running `yarn start` you'll have an app running (localhost:1234).
+
+The app has 2 types of logins for the user.
+1. Connect Wallet
+2. Sign In As Guest
+
+Connect Wallet is a standard NEAR App flow (think allow this app to view my account from MetaMask).
+
+Sign In As Guest creates a temporary keypair on the dev account where the contract is deployed. This gives the guest 3 free mints.
+
+When 
+
+
+# React Notes (more below)
+
+Most of this repo uses React 17 with useContext and useReducer.
 
 There is a helper in `src/utils/state` that handles a lot of this. You can follow the code as an example or read below to understand how it works.
 
