@@ -118,25 +118,20 @@ impl NonFungibleTokenBasic {
     }
 
     /// mint token internal helper
-    fn mint(&mut self, owner_id: AccountId, metadata: String) -> TokenData {
+    fn mint(&mut self, owner_id: AccountId, metadata: String) {
         self.token_id = self.token_id + 1;
-        let token_check = self.token_to_data.get(&self.token_id);
-        if token_check.is_some() {
-            env::panic(b"Token ID already exists.")
-        }
         let token_data = TokenData {
             owner_id,
             metadata,
             price: U128(0),
         };
         self.token_to_data.insert(&self.token_id, &token_data);
-        token_data
     }
 
     /// modifiers
     fn only_owner(&mut self, account_id:AccountId) {
-        let predecessor = env::signer_account_id();
-        if predecessor != account_id {
+        let signer = env::signer_account_id();
+        if signer != account_id {
             let implicit_account_id:AccountId = hex::encode(&env::signer_account_pk()[1..]);
             if implicit_account_id != account_id {
                 env::panic(b"Attempt to call transfer on tokens belonging to another account.")

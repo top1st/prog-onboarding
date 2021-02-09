@@ -51,6 +51,7 @@ export const Contract = ({ near, update, localKeys = {}, account }) => {
 		}, GAS, deposit);
 		checkFreebies();
 		update('loading', false);
+        setMetadata('')
 	};
 
 	return <>

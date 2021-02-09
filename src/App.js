@@ -14,6 +14,8 @@ import './App.scss';
 
 const App = () => {
 	const { state, dispatch, update } = useContext(appStore);
+
+    console.log(state)
     
 	const { near, wallet, contractAccount, account, localKeys, loading } = state;
     

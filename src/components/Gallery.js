@@ -31,7 +31,7 @@ export const Gallery = ({ near, signedIn, contractAccount, account, localKeys, l
 		const contract = getContract(contractAccount);
 		const num_tokens = await contract.get_num_tokens();
 		const newItems = [];
-		for (let i = 1; i < num_tokens + 1; i++) {
+		for (let i = 1; i <= num_tokens; i++) {
 			const data = await contract.get_token_data({
 				token_id: i
 			});
@@ -61,13 +61,13 @@ export const Gallery = ({ near, signedIn, contractAccount, account, localKeys, l
 
 	const handleSetPrice = async (token_id) => {
 		update('loading', true);
-		let currentAccount = account;
+		let appAccount = account;
 		let methods = contractMethods;
-		if (!currentAccount) {
-			currentAccount = createAccessKeyAccount(near, KeyPair.fromString(localKeys.accessSecret));
+		if (!appAccount) {
+			appAccount = createAccessKeyAccount(near, KeyPair.fromString(localKeys.accessSecret));
 			methods = accessKeyMethods;
 		}
-		const contract = getContract(currentAccount, methods);
+		const contract = getContract(appAccount, methods);
 		await contract.set_price({
 			token_id: token_id,
 			amount: parseNearAmount(amount)

@@ -13,7 +13,7 @@ const { GAS } = getConfig();
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 50000;
 
 describe('deploy contract ' + contractName, () => {
-	let alice, bob, bobPublicKey, bobAccountId, bobTokenId;
+	let alice, bob, bobAccountId, bobTokenId;
     
 	const metadata = "https://media.giphy.com/media/l3vR9qDCwNyUtirXa/giphy.gif";
 
@@ -27,7 +27,7 @@ describe('deploy contract ' + contractName, () => {
 		expect(state.code_hash).not.toEqual('11111111111111111111111111111111');
 	});
 
-	test('check create owner', async () => {
+	test('check create normal', async () => {
 		const token_id = await contract.mint_token({
 			owner_id: alice.accountId,
 			metadata
@@ -44,7 +44,7 @@ describe('deploy contract ' + contractName, () => {
 
 	test('check create as guest', async () => {
 		const keyPair = KeyPair.fromRandom('ed25519');
-		const public_key = bobPublicKey = keyPair.publicKey.toString();
+		const public_key = keyPair.publicKey.toString();
 		bobAccountId = Buffer.from(keyPair.publicKey.data).toString('hex');
 
 		// typically done on server (sybil/captcha)
@@ -149,7 +149,8 @@ describe('deploy contract ' + contractName, () => {
 
 		try {
 			bobTokenId = await contractBob.guest_mint({
-				owner_id: bobAccountId
+				owner_id: bobAccountId,
+			    metadata
 			}, GAS);
 			expect(false);
 		} catch (e) {
