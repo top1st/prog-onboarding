@@ -1,18 +1,24 @@
 # Live App Review 6 - Progressive Onboarding
 
-VIDEO WIP
+This repo is a companion to the "NFT Example Progressive Onboarding" video series:
+
+[![Live App Review 6 - NFT Example - Part 1 Contract](https://img.youtube.com/vi/Y-HYCcYVmz8/0.jpg)](https://youtu.be/Y-HYCcYVmz8)
+[![Live App Review 6 - NFT Example - Part 2 App Demo and Tests](https://img.youtube.com/vi/W29QmxiJh84/0.jpg)](https://youtu.be/W29QmxiJh84)
+[![Live App Review 6 - NFT Example - Part 3 Frontend](https://img.youtube.com/vi/8kbxBqDSe_A/0.jpg)](https://youtu.be/8kbxBqDSe_A)
 
 # Notes on this Example
 
-This example is WIP.
+This example is not an NFT Standard and should be considered "experimental". However, it does work and is deployable to testnet. Prior to deploying to mainnet, please join our [Discord](https://near.chat) and check with NEAR **#dev-support** if there are any security concerns. 
 
-Working:
+## Quickstart
 ```js
 yarn // see installation notes for Rust
 yarn test:unit // 1 test will fail due to bug in mocked blockchain
 yarn test:deploy // runs /test/app.test.js (all passing)
 yarn start
 ```
+
+WIP Server Tests incomplete e.g. `yarn test:server` will not work.
 
 Despite server tests being incomplete, you still need to run the server (see notes below) `yarn && yarn start`.
 
@@ -26,14 +32,17 @@ Connect Wallet is a standard NEAR App flow (think allow this app to view my acco
 
 Sign In As Guest creates a temporary keypair on the dev account where the contract is deployed. This gives the guest 3 free mints.
 
-When 
+When a guest mints, the owner_id of the TokenData is going to be the implicit account of the guest. See video "Part 1 Contract" for a detailed explanation of this.
 
+The guest can earn NEAR tokens from sales (other users with NEAR purchase their artwork) and then decide how to use their sale proceeds. Typically they will fund an account.
 
-# React Notes (more below)
+## NEAR Wallet Testnet has no "Funding Account Flow"
 
-Most of this repo uses React 17 with useContext and useReducer.
+In the video "Part 2 App and Testing" I am running the NEAR Wallet on localhost.
 
-There is a helper in `src/utils/state` that handles a lot of this. You can follow the code as an example or read below to understand how it works.
+On testnet NEAR Wallet funds accounts on behalf of users and developers to make the experience easy.
+
+If you'd like to test the funding account flow yourself, clone the [NEAR Wallet](https://github.com/near/near-wallet) and run it with a `.env` file in the root with the following entry `DISABLE_CREATE_ACCOUNT=true`.
 
 ## Installation
 
@@ -107,7 +116,7 @@ await contract.withdraw({ amount: parseNearAmount('1') }, GAS)
 ...
 ```
 
-# React 17, Parcel with useContext and useReducer
+# Notes on React 17, Parcel with useContext and useReducer
 - Bundled with Parcel 2.0 (@next) && eslint
 - *Minimal all-in-one state management with async/await support*
 
